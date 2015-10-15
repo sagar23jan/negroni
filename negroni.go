@@ -102,6 +102,13 @@ func (n *Negroni) Run(addr string) {
 	l.Fatal(http.ListenAndServe(addr, n))
 }
 
+// Wrapper for http.ListenAndServeTLS to add https support
+func (n *Negroni) RunTLS(addr string, certFile string, keyFile string) {
+	l := log.New(os.Stdout, "[negroni] ", 0)
+	l.Printf("listening on %s, certFile at %s, keyFile at %s", addr, certFile, keyFile)
+	l.Fatal(http.ListenAndServeTLS(addr, certFile, keyFile, n))
+}
+
 // Returns a list of all the handlers in the current Negroni middleware chain.
 func (n *Negroni) Handlers() []Handler {
 	return n.handlers
