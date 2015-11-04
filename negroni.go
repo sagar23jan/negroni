@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // Handler handler is an interface that objects can implement to be registered to serve as middleware
@@ -99,14 +100,33 @@ func (n *Negroni) UseHandlerFunc(handlerFunc func(rw http.ResponseWriter, r *htt
 func (n *Negroni) Run(addr string) {
 	l := log.New(os.Stdout, "[negroni] ", 0)
 	l.Printf("listening on %s", addr)
-	l.Fatal(http.ListenAndServe(addr, n))
+	server := &http.Server{Addr: addr, Handler: n, ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 << 16}
+	l.Fatal(server.ListenAndServe())
 }
 
 // Wrapper for http.ListenAndServeTLS to add https support
 func (n *Negroni) RunTLS(addr string, certFile string, keyFile string) {
 	l := log.New(os.Stdout, "[negroni] ", 0)
 	l.Printf("listening on %s, certFile at %s, keyFile at %s", addr, certFile, keyFile)
-	l.Fatal(http.ListenAndServeTLS(addr, certFile, keyFile, n))
+	server := &http.Server{Addr: addr, Handler: n, ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 << 16}
+	l.Fatal(server.ListenAndServeTLS(certFile, keyFile))
+}
+
+// RunServer behaves in a similar fashion as Run except that it takes http.Server
+// as the argument which can be customised according to client's needs.
+func (n *Negroni) RunServer(server *http.Server, addr string) {
+	l := log.New(os.Stdout, "[negroni] ", 0)
+	l.Printf("listening on %s", addr)
+	l.Fatal(server.ListenAndServe())
+}
+
+// Run:RunServer::RunTLS:RunServerTLS
+func (n *Negroni) RunServerTLS(server *http.Server, addr string, certFile string, keyFile string) {
+	l := log.New(os.Stdout, "[negroni] ", 0)
+	l.Printf("listening on %s, certFile at %s, keyFile at %s", addr, certFile, keyFile)
+	l.Fatal(server.ListenAndServeTLS(certFile, keyFile))
 }
 
 // Returns a list of all the handlers in the current Negroni middleware chain.
