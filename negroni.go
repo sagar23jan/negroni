@@ -116,16 +116,18 @@ func (n *Negroni) RunTLS(addr string, certFile string, keyFile string) {
 
 // RunServer behaves in a similar fashion as Run except that it takes http.Server
 // as the argument which can be customised according to client's needs.
-func (n *Negroni) RunServer(server *http.Server, addr string) {
+func (n *Negroni) RunServer(server *http.Server) {
 	l := log.New(os.Stdout, "[negroni] ", 0)
-	l.Printf("listening on %s", addr)
+	l.Printf("listening on %s", server.Addr)
+	server.Handler = n
 	l.Fatal(server.ListenAndServe())
 }
 
 // Run:RunServer::RunTLS:RunServerTLS
-func (n *Negroni) RunServerTLS(server *http.Server, addr string, certFile string, keyFile string) {
+func (n *Negroni) RunServerTLS(server *http.Server, certFile string, keyFile string) {
 	l := log.New(os.Stdout, "[negroni] ", 0)
-	l.Printf("listening on %s, certFile at %s, keyFile at %s", addr, certFile, keyFile)
+	l.Printf("listening on %s, certFile at %s, keyFile at %s", server.Addr, certFile, keyFile)
+	server.Handler = n
 	l.Fatal(server.ListenAndServeTLS(certFile, keyFile))
 }
 
